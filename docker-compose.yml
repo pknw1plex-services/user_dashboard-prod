@@ -1,51 +1,20 @@
-APPNAME:
-    env_file: .env
-    image: 
-    container_name: APPNAME
-    hostname: APPNAME
-    privileged: true
-    networks:
-      - admin
+services: 
+  homer_users:
+    image: b4bz/homer
+    container_name: homer_users
     volumes:
-      - ./config:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /dev/fuse:/dev/fuse
+      - ./config/config.yml:/www/assets/config.yml # Make sure your local config directory exists
+    user: 1000:1000 # default
+    networks:
+      - proxy
     environment:
-      - VIRTUAL_HOST=APPNAME.admin.pknw1.co.uk
-      - VIRTUAL_PORT=9000
-      - APP_GROUP=Core
-      - APP_LOGO=https://static-00.iconduck.com/assets.00/portainer-icon-1465x2048-t155ekm0.png
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 200M
+      - INIT_ASSETS=1 # default, requires the config directory to be writable for the container user (see user option)
+      - APP_GROUP=Content
+      - APP_LOGO=https://raw.githubusercontent.com/bastienwirtz/homer/main/public/logo.png
+      - VIRTUAL_HOST=dashboard.pknw1.co.uk
+      - VIRTUAL_PORT=8080
+    restart: unless-stopped
 
 networks:
-  dmz:
-    name: ${DMZ_NETWORK} 
-    ipam:
-      config:
-        - subnet: ${DMZ_NETWORK_SUBNET}
-          gateway: ${DMZ_NETWORK_ROUTE}
-
-  public:
-    name: public  
-    ipam:
-      config:
-        - subnet: ${PUBLIC_NETWORK_SUBNET}
-          gateway: ${PUBLIC_NETWORK_ROUTE}
-
-  secure:
-    name: secure
-    ipam:
-      config:
-        - subnet: ${SECURE_NETWORK_SUBNET}
-          gateway: ${SECURE_NETWORK_ROUTE}
-
-  admin:
-    name: admin      
-    ipam:
-      config:
-        - subnet: ${ADMIN_NETWORK_SUBNET}
-          gateway: ${ADMIN_NETWORK_ROUTE}
+  proxy:
+    external: true
